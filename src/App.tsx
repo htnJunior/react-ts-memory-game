@@ -27,6 +27,46 @@ const App = () => {
 
   useEffect(() => resetAndCreateGrid(), [])
 
+  useEffect(() => {
+    if(shownCount === 2){
+      let opened = gridItems.filter(item => item.shown === true)
+      if(opened.length === 2){
+        if(opened[0].item === opened[1].item){
+          let tempGrid = [...gridItems]
+          for(let i in tempGrid){
+            if(tempGrid[i].shown){
+              tempGrid[i].permanentShown = true
+              tempGrid[i].shown = false
+            }
+          }
+
+          setGridItems(tempGrid)
+          setShownCount(0)
+
+        }else{
+          setTimeout(() => {
+            let tempGrid = [...gridItems]
+            for(let i in tempGrid){
+              tempGrid[i].shown = false
+            }
+
+            setGridItems(tempGrid)
+            setShownCount(0)
+
+          }, 1000)
+        }
+
+        setMoveCount(moveCount => moveCount + 1)
+      }
+    }
+  }, [shownCount, gridItems])
+
+  useEffect(() => {
+    if(moveCount > 0 && gridItems.every(item => item.permanentShown === true)){
+      setPlaying(false)
+    }
+  }, [moveCount, gridItems])
+
   const resetAndCreateGrid = () => {
     setTimeElapsed(0)
     setMoveCount(0)
@@ -58,7 +98,16 @@ const App = () => {
   }
 
   const handleItemClick = (index: number) => {
+    if(playing && index !== null && shownCount < 2){
+      let tempGrid = [...gridItems]
 
+      if(tempGrid[index].permanentShown === false && tempGrid[index].shown === false){
+        tempGrid[index].shown = true
+        setShownCount(shownCount + 1)
+      }
+
+      setGridItems(tempGrid)
+    }
   }
 
   return (
@@ -70,7 +119,7 @@ const App = () => {
           </C.LogoLink>
           <C.InfoArea>
             <InfoItem label="Tempo" value={formatTimeElapsed(timeElapsed)} />
-            <InfoItem label="Movimentos" value="0" />
+            <InfoItem label="Movimentos" value={moveCount.toString()} />
           </C.InfoArea>
           <Button label="Reinicar" icon={restartIcon} onClick={resetAndCreateGrid} />
         </C.Info>
